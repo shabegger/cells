@@ -11,18 +11,22 @@ function Playable(name) {
 			case 38: // Up Arrow
 			case 87: // W
 				up = true;
+				e.preventDefault();
 				break;
 			case 40: // Down Arrow
 			case 83: // S
 				down = true;
+				e.preventDefault();
 				break;
 			case 37: // Left Arrow
 			case 65: // A
 				left = true;
+				e.preventDefault();
 				break;
 			case 39: // Right Arrow
 			case 68: // D
 				right = true;
+				e.preventDefault();
 				break;
 		}
 	});
