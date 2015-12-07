@@ -94,6 +94,81 @@ process.umask = function() { return 0; };
 },{}],2:[function(require,module,exports){
 var AI = require('../source/ai');
 
+function Playable(name) {
+	var up = false,
+		down = false,
+		left = false,
+		right = false;
+
+	$(window).on('keydown', function (e) {
+		switch (e.which) {
+			case 38: // Up Arrow
+			case 87: // W
+				up = true;
+				e.preventDefault();
+				break;
+			case 40: // Down Arrow
+			case 83: // S
+				down = true;
+				e.preventDefault();
+				break;
+			case 37: // Left Arrow
+			case 65: // A
+				left = true;
+				e.preventDefault();
+				break;
+			case 39: // Right Arrow
+			case 68: // D
+				right = true;
+				e.preventDefault();
+				break;
+		}
+	});
+
+	$(window).on('keyup', function (e) {
+		switch (e.which) {
+			case 38: // Up Arrow
+			case 87: // W
+				up = false;
+				break;
+			case 40: // Down Arrow
+			case 83: // S
+				down = false;
+				break;
+			case 37: // Left Arrow
+			case 65: // A
+				left = false;
+				break;
+			case 39: // Right Arrow
+			case 68: // D
+				right = false;
+				break;
+		}
+	});
+
+	AI.call(this, name, function () {
+		var x = 0, y = 0;
+
+		if (up) y--;
+		if (down) y++;
+		if (left) x--;
+		if (right) x++;
+
+		return {
+			x: x,
+			y: y
+		};
+	});
+}
+
+Playable.prototype = Object.create(AI.prototype);
+Playable.prototype.constructor = Playable;
+
+module.exports = Playable;
+
+},{"../source/ai":8}],3:[function(require,module,exports){
+var AI = require('../source/ai');
+
 function Random(name) {
 	var x, y;
 	
@@ -122,7 +197,7 @@ Random.prototype.constructor = Random;
 
 module.exports = Random;
 
-},{"../source/ai":7}],3:[function(require,module,exports){
+},{"../source/ai":8}],4:[function(require,module,exports){
 var AI = require('../source/ai'),
 	Random = require('./random'),
 	_2_PI = 2 * Math.PI,
@@ -257,11 +332,12 @@ Simple.prototype.constructor = Simple;
 
 module.exports = Simple;
 
-},{"../source/ai":7,"./random":2}],4:[function(require,module,exports){
+},{"../source/ai":8,"./random":3}],5:[function(require,module,exports){
 var PetriDish = require('./source/petriDish'),
 	SVGDisplay = require('./display/svg'),
 	SVGCell = SVGDisplay.SVGCell,
 	SVGFood = SVGDisplay.SVGFood,
+	Playable = require('./ai/playable'),
 	Random = require('./ai/random'),
 	Simple = require('./ai/simple'),
 	
@@ -279,7 +355,7 @@ function start() {
 		simpleCount = 1,
 		i, circles, circle;
 		
-	document.getElementById('btn-start').disabled = true;
+	$('button#btn-start').prop('disabled', true);
 		
 	circles = document.getElementById('cells-dish').childNodes;
 	for (i = circles.length - 1; i >= 0; i--) {
@@ -287,19 +363,8 @@ function start() {
 		circle.remove();
 	}
 	
-	aiList = Array.prototype.slice.call(document.getElementsByTagName('select')).map(function (select) {
-		var value, option,
-			i, len;
-		
-		for (i = 0, len = select.childNodes.length; i < len; i++) {
-			option = select.childNodes[i];
-			if (option.selected) {
-				value = option.value;
-				break;
-			}
-		}
-		
-		return value;
+	aiList = Array.prototype.slice.call($('select')).map(function (select) {
+		return $(select).find('option:selected').val();
 	}).filter(function (value) {
 		return !!value;
 	}).map(function (value) {
@@ -308,6 +373,8 @@ function start() {
 				return new Random('Random ' + randomCount++);
 			case 'Simple':
 				return new Simple('Simple ' + simpleCount++);
+			case 'Playable':
+				return new Playable('Player');
 		}
 	});
 	
@@ -320,9 +387,13 @@ function start() {
 			r = 0;
 			g = 0;
 			b = 255;
-		} else {
+		} else if (ai instanceof Random) {
 			r = 255;
 			g = 0;
+			b = 0;
+		} else {
+			r = 0;
+			g = 255;
 			b = 0;
 		}
 		
@@ -330,7 +401,7 @@ function start() {
 	});
 	
 	foodFactory = function(width, height) {
-		return new SVGFood(svgElement, width, height, 5);
+		return new SVGFood(svgElement, width, height, 2);
 	};
 	
 	petriDish = new PetriDish(width, height, 20, 12, 200, cellList, foodFactory);
@@ -345,7 +416,7 @@ function start() {
 					return '' + (i + 1) + '. ' + result.name;
 				}).join('\n'));
 				
-				document.getElementById('btn-start').disabled = false;
+				$('button#btn-start').prop('disabled', false);
 			}
 		});
 	}, 15);
@@ -361,9 +432,9 @@ function start() {
 	requestAnimationFrame(animate);
 }
 
-document.getElementById('btn-start').onclick = start;
+$('button#btn-start').on('click', start);
 
-},{"./ai/random":2,"./ai/simple":3,"./display/svg":5,"./source/petriDish":11}],5:[function(require,module,exports){
+},{"./ai/playable":2,"./ai/random":3,"./ai/simple":4,"./display/svg":6,"./source/petriDish":12}],6:[function(require,module,exports){
 var Cell = require('../source/cell'),
 	Food = require('../source/food'),
 	svgNS = 'http://www.w3.org/2000/svg';
@@ -418,7 +489,7 @@ module.exports = {
 	SVGFood: makeSVGCircleClass(Food)
 };
 
-},{"../source/cell":8,"../source/food":10}],6:[function(require,module,exports){
+},{"../source/cell":9,"../source/food":11}],7:[function(require,module,exports){
 (function (process,global){
 /* @preserve
  * The MIT License (MIT)
@@ -5669,7 +5740,7 @@ module.exports = ret;
 },{"./es5":13}]},{},[4])(4)
 });                    ;if (typeof window !== 'undefined' && window !== null) {                               window.P = window.Promise;                                                     } else if (typeof self !== 'undefined' && self !== null) {                             self.P = self.Promise;                                                         }
 }).call(this,require('_process'),typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"_process":1}],7:[function(require,module,exports){
+},{"_process":1}],8:[function(require,module,exports){
 function AI(name, turnFn) {
 	this.name = name;
 	this.turnFn = turnFn;
@@ -5681,7 +5752,7 @@ AI.prototype.takeTurn = function takeTurn(size, cells, food) {
 
 module.exports = AI;
 
-},{}],8:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var AI = require('./ai'),
 	Circle = require('./circle');
 
@@ -5704,7 +5775,7 @@ Cell.prototype.takeTurn = function takeTurn(cells, food) {
 
 module.exports = Cell;
 
-},{"./ai":7,"./circle":9}],9:[function(require,module,exports){
+},{"./ai":8,"./circle":10}],10:[function(require,module,exports){
 function Circle(x, y, size, r, g, b) {
 	var sum;
 	
@@ -5738,7 +5809,7 @@ Circle.prototype.remove = function remove() {};
 
 module.exports = Circle;
 
-},{}],10:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 var Circle = require('./circle');
 
 function Food(width, height, minSize, maxSize) {
@@ -5759,7 +5830,7 @@ Food.prototype.constructor = Food;
 
 module.exports = Food;
 
-},{"./circle":9}],11:[function(require,module,exports){
+},{"./circle":10}],12:[function(require,module,exports){
 var Promise = require('bluebird'),
 	
 	replenishFoodAsync,
@@ -5959,7 +6030,7 @@ function PetriDish(width, height, xPartitions, yPartitions, foodAmount, cellList
 		
 		for (i = cells.length - 1; i >= 0; i--) {
 			cell = cells[i];
-			if ((cell.size / totalCellSize) > 0.5) {
+			if ((cell.size / totalCellSize) > (1 - (1 / cells.length))) {
 				results = results.concat(cells.sort(function (a, b) {
 					return a.size - b.size;
 				}));
@@ -6014,4 +6085,4 @@ function PetriDish(width, height, xPartitions, yPartitions, foodAmount, cellList
 
 module.exports = PetriDish;
 
-},{"bluebird":6}]},{},[4]);
+},{"bluebird":7}]},{},[5]);

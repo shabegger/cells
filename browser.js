@@ -2,6 +2,7 @@ var PetriDish = require('./source/petriDish'),
 	SVGDisplay = require('./display/svg'),
 	SVGCell = SVGDisplay.SVGCell,
 	SVGFood = SVGDisplay.SVGFood,
+	Playable = require('./ai/playable'),
 	Random = require('./ai/random'),
 	Simple = require('./ai/simple'),
 	
@@ -19,7 +20,7 @@ function start() {
 		simpleCount = 1,
 		i, circles, circle;
 		
-	document.getElementById('btn-start').disabled = true;
+	$('button#btn-start').prop('disabled', true);
 		
 	circles = document.getElementById('cells-dish').childNodes;
 	for (i = circles.length - 1; i >= 0; i--) {
@@ -27,19 +28,8 @@ function start() {
 		circle.remove();
 	}
 	
-	aiList = Array.prototype.slice.call(document.getElementsByTagName('select')).map(function (select) {
-		var value, option,
-			i, len;
-		
-		for (i = 0, len = select.childNodes.length; i < len; i++) {
-			option = select.childNodes[i];
-			if (option.selected) {
-				value = option.value;
-				break;
-			}
-		}
-		
-		return value;
+	aiList = Array.prototype.slice.call($('select')).map(function (select) {
+		return $(select).find('option:selected').val();
 	}).filter(function (value) {
 		return !!value;
 	}).map(function (value) {
@@ -48,6 +38,8 @@ function start() {
 				return new Random('Random ' + randomCount++);
 			case 'Simple':
 				return new Simple('Simple ' + simpleCount++);
+			case 'Playable':
+				return new Playable('Player');
 		}
 	});
 	
@@ -60,9 +52,13 @@ function start() {
 			r = 0;
 			g = 0;
 			b = 255;
-		} else {
+		} else if (ai instanceof Random) {
 			r = 255;
 			g = 0;
+			b = 0;
+		} else {
+			r = 0;
+			g = 255;
 			b = 0;
 		}
 		
@@ -70,7 +66,7 @@ function start() {
 	});
 	
 	foodFactory = function(width, height) {
-		return new SVGFood(svgElement, width, height, 5);
+		return new SVGFood(svgElement, width, height, 2);
 	};
 	
 	petriDish = new PetriDish(width, height, 20, 12, 200, cellList, foodFactory);
@@ -85,7 +81,7 @@ function start() {
 					return '' + (i + 1) + '. ' + result.name;
 				}).join('\n'));
 				
-				document.getElementById('btn-start').disabled = false;
+				$('button#btn-start').prop('disabled', false);
 			}
 		});
 	}, 15);
@@ -101,4 +97,4 @@ function start() {
 	requestAnimationFrame(animate);
 }
 
-document.getElementById('btn-start').onclick = start;
+$('button#btn-start').on('click', start);

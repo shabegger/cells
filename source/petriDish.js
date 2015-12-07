@@ -197,7 +197,7 @@ function PetriDish(width, height, xPartitions, yPartitions, foodAmount, cellList
 		
 		for (i = cells.length - 1; i >= 0; i--) {
 			cell = cells[i];
-			if ((cell.size / totalCellSize) > 0.5) {
+			if ((cell.size / totalCellSize) > (1 - (1 / cells.length))) {
 				results = results.concat(cells.sort(function (a, b) {
 					return a.size - b.size;
 				}));
