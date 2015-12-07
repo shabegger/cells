@@ -419,7 +419,7 @@ function start() {
 				$('button#btn-start').prop('disabled', false);
 			}
 		});
-	}, 15);
+	}, 30);
 	
 	function animate() {
 		petriDish.processDisplay();
