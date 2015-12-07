@@ -66,7 +66,7 @@ function start() {
 	});
 	
 	foodFactory = function(width, height) {
-		return new SVGFood(svgElement, width, height, 5);
+		return new SVGFood(svgElement, width, height, 2);
 	};
 	
 	petriDish = new PetriDish(width, height, 20, 12, 200, cellList, foodFactory);

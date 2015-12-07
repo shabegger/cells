@@ -401,7 +401,7 @@ function start() {
 	});
 	
 	foodFactory = function(width, height) {
-		return new SVGFood(svgElement, width, height, 5);
+		return new SVGFood(svgElement, width, height, 2);
 	};
 	
 	petriDish = new PetriDish(width, height, 20, 12, 200, cellList, foodFactory);
@@ -6030,7 +6030,7 @@ function PetriDish(width, height, xPartitions, yPartitions, foodAmount, cellList
 		
 		for (i = cells.length - 1; i >= 0; i--) {
 			cell = cells[i];
-			if ((cell.size / totalCellSize) > 0.5) {
+			if ((cell.size / totalCellSize) > (1 - (1 / cells.length))) {
 				results = results.concat(cells.sort(function (a, b) {
 					return a.size - b.size;
 				}));
